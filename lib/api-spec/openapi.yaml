@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Lexus GS300 Arıza Teşhis API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: dtc
+    description: DTC fault code operations
+  - name: symptoms
+    description: Symptom-based diagnosis
+  - name: systems
+    description: Vehicle system categories
 paths:
   /healthz:
     get:
@@ -24,6 +30,159 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /dtc-codes:
+    get:
+      operationId: listDtcCodes
+      tags: [dtc]
+      summary: List DTC fault codes
+      description: Returns all fault codes, optionally filtered by search query or system
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by code, title, or description
+        - name: system
+          in: query
+          schema:
+            type: string
+          description: Filter by vehicle system (engine, transmission, abs, etc.)
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+          description: Filter by severity level
+      responses:
+        "200":
+          description: List of fault codes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DtcCode"
+
+  /dtc-codes/{code}:
+    get:
+      operationId: getDtcCode
+      tags: [dtc]
+      summary: Get DTC fault code details
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The OBD-II fault code (e.g. P0300)
+      responses:
+        "200":
+          description: Fault code details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DtcCode"
+        "404":
+          description: Code not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /symptoms/diagnose:
+    post:
+      operationId: diagnoseBySymptoms
+      tags: [symptoms]
+      summary: Diagnose faults by symptoms
+      description: Returns likely fault codes and issues based on described symptoms
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SymptomInput"
+      responses:
+        "200":
+          description: Diagnosis results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiagnosisResult"
+
+  /symptoms/list:
+    get:
+      operationId: listSymptoms
+      tags: [symptoms]
+      summary: List all known symptoms
+      description: Returns all symptom categories and individual symptoms for 2005 Lexus GS300
+      responses:
+        "200":
+          description: Symptom list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SymptomCategory"
+
+  /systems:
+    get:
+      operationId: listSystems
+      tags: [systems]
+      summary: List vehicle systems
+      description: Returns all vehicle systems with their common issues summary
+      responses:
+        "200":
+          description: Vehicle systems
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VehicleSystem"
+
+  /systems/{systemId}/issues:
+    get:
+      operationId: getSystemIssues
+      tags: [systems]
+      summary: Get common issues for a system
+      parameters:
+        - name: systemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Issues for system
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DtcCode"
+        "404":
+          description: System not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stats/summary:
+    get:
+      operationId: getStatsSummary
+      tags: [dtc]
+      summary: Get database summary stats
+      description: Returns counts by system and severity for the dashboard
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +193,176 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    RepairStep:
+      type: object
+      required: [order, description]
+      properties:
+        order:
+          type: integer
+        description:
+          type: string
+        estimatedTime:
+          type: ["string", "null"]
+        toolRequired:
+          type: ["string", "null"]
+
+    DtcCode:
+      type: object
+      required: [code, title, system, severity, description, symptoms, causes, repairSteps, estimatedCost, difficulty]
+      properties:
+        code:
+          type: string
+          description: OBD-II code e.g. P0300
+        title:
+          type: string
+          description: Short human-readable title (Turkish)
+        system:
+          type: string
+          description: Vehicle system identifier
+        systemLabel:
+          type: string
+          description: Human-readable system name (Turkish)
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        description:
+          type: string
+          description: Full description of the fault (Turkish)
+        symptoms:
+          type: array
+          items:
+            type: string
+          description: Observable symptoms (Turkish)
+        causes:
+          type: array
+          items:
+            type: string
+          description: Possible causes (Turkish)
+        repairSteps:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepairStep"
+        estimatedCost:
+          type: string
+          description: Approximate repair cost range in Turkish Lira
+        difficulty:
+          type: string
+          enum: [easy, medium, hard, professional]
+          description: DIY difficulty level
+        relatedCodes:
+          type: array
+          items:
+            type: string
+
+    SymptomInput:
+      type: object
+      required: [symptoms]
+      properties:
+        symptoms:
+          type: array
+          items:
+            type: string
+          description: List of symptom IDs or free text descriptions
+        system:
+          type: ["string", "null"]
+          description: Optional vehicle system to narrow search
+
+    DiagnosisResult:
+      type: object
+      required: [matches, confidence]
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagnosisMatch"
+        confidence:
+          type: string
+          enum: [high, medium, low]
+        note:
+          type: string
+
+    DiagnosisMatch:
+      type: object
+      required: [dtcCode, score, matchedSymptoms]
+      properties:
+        dtcCode:
+          $ref: "#/components/schemas/DtcCode"
+        score:
+          type: integer
+          description: Match score 0-100
+        matchedSymptoms:
+          type: array
+          items:
+            type: string
+
+    SymptomCategory:
+      type: object
+      required: [id, label, symptoms]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        symptoms:
+          type: array
+          items:
+            $ref: "#/components/schemas/Symptom"
+
+    Symptom:
+      type: object
+      required: [id, label]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        systemHint:
+          type: ["string", "null"]
+
+    VehicleSystem:
+      type: object
+      required: [id, label, icon, codeCount, criticalCount]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        icon:
+          type: string
+        description:
+          type: string
+        codeCount:
+          type: integer
+        criticalCount:
+          type: integer
+
+    StatsSummary:
+      type: object
+      required: [totalCodes, bySeverity, bySystem]
+      properties:
+        totalCodes:
+          type: integer
+        bySeverity:
+          type: object
+          additionalProperties:
+            type: integer
+        bySystem:
+          type: array
+          items:
+            type: object
+            required: [system, label, count]
+            properties:
+              system:
+                type: string
+              label:
+                type: string
+              count:
+                type: integer

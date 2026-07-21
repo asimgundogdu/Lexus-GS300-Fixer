@@ -5,7 +5,10 @@
  * Lexus GS300 Arıza Teşhis API
  * OpenAPI spec version: 0.1.0
  */
+import type { Symptom } from './symptom';
 
-export interface HealthStatus {
-  status: string;
+export interface SymptomCategory {
+  id: string;
+  label: string;
+  symptoms: Symptom[];
 }
