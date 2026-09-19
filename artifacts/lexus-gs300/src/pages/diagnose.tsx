@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/layout";
-import { useListSymptoms, useDiagnoseBySymptoms } from "@workspace/api-client-react";
+import { useListSymptoms, useDiagnoseBySymptoms } from "@/lib/local-api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

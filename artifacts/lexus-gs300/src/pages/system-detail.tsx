@@ -1,6 +1,6 @@
 import React from "react";
 import { Layout } from "@/components/layout";
-import { useGetSystemIssues, useListSystems, DtcCodeSeverity } from "@workspace/api-client-react";
+import { useGetSystemIssues, useListSystems, DtcCodeSeverity } from "@/lib/local-api";
 import { useRoute, useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

@@ -1,6 +1,6 @@
 import React from "react";
 import { Layout } from "@/components/layout";
-import { useGetDtcCode, DtcCodeSeverity, DtcCodeDifficulty } from "@workspace/api-client-react";
+import { useGetDtcCode, DtcCodeSeverity, DtcCodeDifficulty } from "@/lib/local-api";
 import { useRoute, useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
