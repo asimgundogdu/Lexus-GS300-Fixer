@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const ACCESS_PIN = "1974";
-const STORAGE_KEY = "gs300-diagnosis-access";
+const STORAGE_KEY = "gs300-diagnosis-access-v2";
 
 interface PasswordGateProps {
   children: React.ReactNode;

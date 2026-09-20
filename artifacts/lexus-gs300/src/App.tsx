@@ -9,18 +9,71 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PasswordGate } from "./components/password-gate";
 import { Route, Switch, Router as WouterRouter } from 'wouter';
+import type { ReactNode } from 'react';
 
 const queryClient = new QueryClient();
+
+function ProtectedPage({ children }: { children: ReactNode }) {
+  return <PasswordGate>{children}</PasswordGate>;
+}
+
+function DashboardRoute() {
+  return (
+    <ProtectedPage>
+      <Dashboard />
+    </ProtectedPage>
+  );
+}
+
+function DiagnoseRoute() {
+  return (
+    <ProtectedPage>
+      <Diagnose />
+    </ProtectedPage>
+  );
+}
+
+function DtcDetailRoute() {
+  return (
+    <ProtectedPage>
+      <DtcDetail />
+    </ProtectedPage>
+  );
+}
+
+function SystemDetailRoute() {
+  return (
+    <ProtectedPage>
+      <SystemDetail />
+    </ProtectedPage>
+  );
+}
+
+function SearchRoute() {
+  return (
+    <ProtectedPage>
+      <SearchPage />
+    </ProtectedPage>
+  );
+}
+
+function NotFoundRoute() {
+  return (
+    <ProtectedPage>
+      <NotFound />
+    </ProtectedPage>
+  );
+}
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/diagnose" component={Diagnose} />
-      <Route path="/dtc/:code" component={DtcDetail} />
-      <Route path="/systems/:systemId" component={SystemDetail} />
-      <Route path="/search" component={SearchPage} />
-      <Route component={NotFound} />
+      <Route path="/" component={DashboardRoute} />
+      <Route path="/diagnose" component={DiagnoseRoute} />
+      <Route path="/dtc/:code" component={DtcDetailRoute} />
+      <Route path="/systems/:systemId" component={SystemDetailRoute} />
+      <Route path="/search" component={SearchRoute} />
+      <Route component={NotFoundRoute} />
     </Switch>
   );
 }
@@ -29,11 +82,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <PasswordGate>
-          <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, '') || ""}>
-            <Router />
-          </WouterRouter>
-        </PasswordGate>
+        <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, '') || ""}>
+          <Router />
+        </WouterRouter>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

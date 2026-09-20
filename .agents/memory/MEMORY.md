@@ -1,0 +1,1 @@
+- [GitHub branch synchronization](github-branch-sync.md) — GitHub API commits may get a different SHA than the local commit; sync both branches to the resulting remote commit after force-updating.
