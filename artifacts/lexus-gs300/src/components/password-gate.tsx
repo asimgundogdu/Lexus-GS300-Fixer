@@ -3,7 +3,7 @@ import { LockKeyhole, ArrowRight, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const ACCESS_PASSWORD = "1974";
+const ACCESS_PIN = "1974";
 const STORAGE_KEY = "gs300-diagnosis-access";
 
 interface PasswordGateProps {
@@ -12,7 +12,7 @@ interface PasswordGateProps {
 
 export function PasswordGate({ children }: PasswordGateProps) {
   const [isUnlocked, setIsUnlocked] = React.useState(false);
-  const [password, setPassword] = React.useState("");
+  const [pin, setPin] = React.useState("");
   const [hasError, setHasError] = React.useState(false);
 
   React.useEffect(() => {
@@ -25,7 +25,7 @@ export function PasswordGate({ children }: PasswordGateProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (password === ACCESS_PASSWORD) {
+    if (pin === ACCESS_PIN) {
       try {
         window.localStorage.setItem(STORAGE_KEY, "granted");
       } catch {
@@ -36,7 +36,7 @@ export function PasswordGate({ children }: PasswordGateProps) {
       return;
     }
 
-    setPassword("");
+    setPin("");
     setHasError(true);
   };
 
@@ -53,9 +53,9 @@ export function PasswordGate({ children }: PasswordGateProps) {
             </div>
             <div className="space-y-2">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">GS300 Tanı Sistemi</p>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Erişim Şifresi</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">PIN Kilidi</h1>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Arıza kodları ve teşhis ekranına devam etmek için şifrenizi girin.
+                Ana sayfa, arıza kodları ve teşhis ekranına devam etmek için 4 haneli PIN kodunu girin.
               </p>
             </div>
           </div>
@@ -71,31 +71,35 @@ export function PasswordGate({ children }: PasswordGateProps) {
               aria-hidden="true"
               className="hidden"
             />
-            <label htmlFor="access-password" className="text-sm font-medium">
-              Şifre
+            <label htmlFor="access-pin" className="text-sm font-medium">
+              4 Haneli PIN
             </label>
             <Input
-              id="access-password"
-              type="password"
+              id="access-pin"
+              type="text"
               inputMode="numeric"
-              autoComplete="current-password"
+              autoComplete="one-time-code"
+              maxLength={4}
+              pattern="[0-9]{4}"
               autoFocus
-              placeholder="Şifrenizi girin"
-              value={password}
+              placeholder="••••"
+              value={pin}
               onChange={(event) => {
-                setPassword(event.target.value);
+                const nextPin = event.target.value.replace(/\D/g, "").slice(0, 4);
+                setPin(nextPin);
                 if (hasError) setHasError(false);
               }}
               aria-invalid={hasError}
-              className="h-12 bg-background/70 text-center text-lg tracking-[0.35em]"
-              data-testid="input-access-password"
+              aria-describedby={hasError ? "pin-error" : undefined}
+              className="h-12 bg-background/70 text-center text-2xl tracking-[0.5em]"
+              data-testid="input-access-pin"
             />
             {hasError && (
-              <p className="text-sm text-destructive" role="alert">
-                Şifre yanlış. Lütfen tekrar deneyin.
+              <p id="pin-error" className="text-sm text-destructive" role="alert">
+                PIN kodu yanlış. Lütfen 4 haneli kodu tekrar deneyin.
               </p>
             )}
-            <Button type="submit" className="h-12 mt-2 font-bold" disabled={!password}>
+            <Button type="submit" className="h-12 mt-2 font-bold" disabled={pin.length !== 4}>
               Devam Et
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
